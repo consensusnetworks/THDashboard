@@ -99,25 +99,28 @@ class StreamListener(tweepy.StreamListener):
 ############################
 if __name__ == '__main__':
     obesity_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/obesity_tweets.csv"
+    diabetes_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/diabetes_tweets.csv"
     # epilepsy_tweets = "data/telemedicine_data_extraction/epilepsy_data.csv"
     # heart_stroke_tweets = "data/telemedicine_data_extraction/heart_stroke_tweets_data.csv"
-    file = obesity_tweets
+    files = [obesity_tweets, diabetes_tweets]
 
-    StreamListener = StreamListener() #Turns Stream Listener Class On
-    StreamListener.field_load(file)
-    print('Streamer On, Ready to Factomize Some Tweets!')
-    
-    try:
-        print('Waiting For Tweets...')
-        api = getTwitterCredentials(TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET)
-        stream = tweepy.Stream(auth = api.auth, listener=StreamListener, aync=True)
-        stream.filter(track = ['obesity']) 
+    for f in files:
+        file = f
+        StreamListener = StreamListener() #Turns Stream Listener Class On
+        StreamListener.field_load(file)
+        print('Streamer On, Ready to Analyze Some Tweets!' + str(file))
         
-    except Exception as ex:
-        print ("[STREAM] Stream stopped! Reconnecting to twitter stream")
-        print (ex)
-        stream.filter(track = ['obesity'])
+        try:
+            print('Waiting For Tweets...')
+            api = getTwitterCredentials(TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET)
+            stream = tweepy.Stream(auth = api.auth, listener=StreamListener, aync=True)
+            stream.filter(track = ['obesity', 'diabetes']) 
+            
+        except Exception as ex:
+            print ("[STREAM] Stream stopped! Reconnecting to twitter stream")
+            print (ex)
+            stream.filter(track = ['obesity', 'diabetes'])
 
-    except KeyboardInterrupt:
-        print('Program Exited Gracefully')
-        exit(1)
+        except KeyboardInterrupt:
+            print('Program Exited Gracefully')
+            exit(1)
