@@ -12,10 +12,10 @@ from credentials import EC_ADDRESS, FCT_ADDRESS, TWITTER_KEY, TWITTER_SECRET, TW
 from utils import clean_tweets, COLS, emoticons, emoji_pattern, getTwitterCredentials 
 
 class StreamListener(tweepy.StreamListener):
-    def field_load(self, file):
-        self.file = file
+    def field_load(self, condition_topic):
+        self.condition_topic = condition_topic
 
-        # print(self.file)
+        print(self.condition_topic)
     def on_status(self, status):
 
         try:
@@ -23,6 +23,7 @@ class StreamListener(tweepy.StreamListener):
             status = status._json
             print('status', status['lang'])
 
+            condition_topic = self.condition_topic
             df = pd.DataFrame(columns=COLS)
             if status['lang'] == 'en':
                 #tweepy preprocessing called for basic preprocessing
@@ -78,9 +79,13 @@ class StreamListener(tweepy.StreamListener):
 
                 single_tweet_df = pd.DataFrame([new_entry], columns=COLS)
                 df = df.append(single_tweet_df, ignore_index=True)
-                new_file = self.file
-                csvFile = open(new_file, 'a' ,encoding='utf-8')
-                df.to_csv(csvFile, mode='a', columns=COLS, index=False, encoding="utf-8")
+                # new_file = self.file
+                
+                with open('%s_tweets.csv' % condition_topic, 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(COLS)
+                    writer.writerows( df.to_csv(f, mode='a', columns=COLS, index=False, encoding="utf-8"))
+                   
 
         except BaseException as e:
                 print("Error on_data %s" % str(e))
@@ -97,30 +102,30 @@ class StreamListener(tweepy.StreamListener):
         return True # Don't kill the stream
         print ("Stream restarted")
 ############################
-if __name__ == '__main__':
-    obesity_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/obesity_tweets.csv"
-    diabetes_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/diabetes_tweets.csv"
-    # epilepsy_tweets = "data/telemedicine_data_extraction/epilepsy_data.csv"
-    # heart_stroke_tweets = "data/telemedicine_data_extraction/heart_stroke_tweets_data.csv"
-    files = [obesity_tweets, diabetes_tweets]
+# if __name__ == '__main__':
+#     obesity_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/obesity_tweets.csv"
+#     diabetes_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/diabetes_tweets.csv"
+#     epilepsy_tweets = "data/telemedicine_data_extraction/epilepsy_data.csv"
+#     heart_stroke_tweets = "data/telemedicine_data_extraction/heart_stroke_tweets_data.csv"
+#     files = [obesity_tweets, diabetes_tweets]
 
-    for f in files:
-        file = f
-        StreamListener = StreamListener() #Turns Stream Listener Class On
-        StreamListener.field_load(file)
-        print('Streamer On, Ready to Analyze Some Tweets!' + str(file))
+#     for f in files:
+#         file = f
+#         StreamListener = StreamListener() #Turns Stream Listener Class On
+#         StreamListener.field_load(file)
+#         print('Streamer On, Ready to Analyze Some Tweets!' + str(file))
         
-        try:
-            print('Waiting For Tweets...')
-            api = getTwitterCredentials(TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET)
-            stream = tweepy.Stream(auth = api.auth, listener=StreamListener, aync=True)
-            stream.filter(track = ['obesity', 'diabetes']) 
+#         try:
+#             print('Waiting For Tweets...')
+#             api = getTwitterCredentials(TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET)
+#             stream = tweepy.Stream(auth = api.auth, listener=StreamListener, aync=True)
+#             stream.filter(track = ['obesity', 'diabetes']) 
             
-        except Exception as ex:
-            print ("[STREAM] Stream stopped! Reconnecting to twitter stream")
-            print (ex)
-            stream.filter(track = ['obesity', 'diabetes'])
+#         except Exception as ex:
+#             print ("[STREAM] Stream stopped! Reconnecting to twitter stream")
+#             print (ex)
+#             stream.filter(track = ['obesity', 'diabetes'])
 
-        except KeyboardInterrupt:
-            print('Program Exited Gracefully')
-            exit(1)
+#         except KeyboardInterrupt:
+#             print('Program Exited Gracefully')
+#             exit(1)

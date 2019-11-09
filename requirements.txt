@@ -6,6 +6,7 @@ flask_restful
 idna==2.8
 itsdangerous==1.1.0
 Jinja2==2.10.1
+kafka-python==1.4.6
 MarkupSafe==1.1.1
 nltk==3.4.5
 numpy==1.17.3
