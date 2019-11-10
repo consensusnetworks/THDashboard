@@ -18,23 +18,22 @@ class Condition(Resource):
 
         con = psycopg2.connect("host='localhost' dbname='conditions' user='connorsmith' password='smith95'")
         sql = "CREATE TABLE " + str(condition) + """ (
-                    id INT PRIMARY KEY NOT NULL, 
+                    id BIGINT NOT NULL, 
                     created_at TIMESTAMPTZ NOT NULL,
                     source TEXT NOT NULL, 
                     original_text TEXT NOT NULL,
                     clean_text TEXT NOT NULL,
-                    sentiment NUMERIC NOT NULL,
+                    sentiment VARCHAR(255) NOT NULL,
                     polarity NUMERIC NOT NULL,
                     subjectivity NUMERIC NOT NULL,
                     lang TEXT NOT NULL,
-                    favorite_count INT NOT NULL,
-                    retweet_count INT NOT NULL, 
+                    favorite_count BIGINT NOT NULL,
+                    retweet_count BIGINT NOT NULL, 
                     original_author TEXT NOT NULL,
-                    possibly_sensitive VARCHAR(255) NOT NULL,
+                    possibly_sensitive VARCHAR(255),
                     hashtags VARCHAR(255),
                     user_mentions VARCHAR(255),
-                    place VARCHAR(255), 
-                    place_coord_boundaries VARCHAR(255)
+                    place VARCHAR(255)
                 )"""
         cur = con.cursor()
         cur.execute(sql)

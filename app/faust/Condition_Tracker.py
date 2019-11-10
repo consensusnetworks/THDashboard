@@ -8,6 +8,7 @@ import re #regular expression
 from textblob import TextBlob
 import string
 import preprocessor as p
+import psycopg2
 
 from credentials import TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET
 from utils import clean_tweets, COLS, emoticons, emoji_pattern, getTwitterCredentials
@@ -22,8 +23,6 @@ source_topic = app.topic('Conditions', value_serializer='json')
 async def getAccounts(source_topic):
     async for topic in source_topic:
         print(topic)
-        # kafka = KafkaClient("localhost:9092") #initializes kafka client
-        # producer = SimpleProducer(kafka, value_serializer=('utf-8')) #initializes kafka producer
         condition_topic = app.topic(str(topic), value_serializer='json')
         condition_topic.stream()
         print(condition_topic)

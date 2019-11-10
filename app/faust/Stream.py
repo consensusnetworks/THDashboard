@@ -7,6 +7,7 @@ import re #regular expression
 from textblob import TextBlob
 import string
 import preprocessor as p
+import psycopg2
 
 from credentials import EC_ADDRESS, FCT_ADDRESS, TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET
 from utils import clean_tweets, COLS, emoticons, emoji_pattern, getTwitterCredentials 
@@ -76,15 +77,20 @@ class StreamListener(tweepy.StreamListener):
                 except TypeError:
                     coordinates = None
                 new_entry.append(coordinates)
-
-                single_tweet_df = pd.DataFrame([new_entry], columns=COLS)
-                df = df.append(single_tweet_df, ignore_index=True)
-                # new_file = self.file
+                print(new_entry)
                 
-                with open('%s_tweets.csv' % condition_topic, 'w') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(COLS)
-                    writer.writerows( df.to_csv(f, mode='a', columns=COLS, index=False, encoding="utf-8"))
+                con = psycopg2.connect("host='localhost' dbname='conditions' user='connorsmith' password='smith95'")
+                sql = "INSERT INTO " + str(condition_topic) + """(id, created_at, source, original_text, clean_text, 
+                                                                sentiment, polarity, subjectivity, lang, favorite_count, 
+                                                                retweet_count, original_author, possibly_sensitive, hashtags, 
+                                                                user_mentions, place) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, 
+                                                                %s, %s, %s, %s, %s, %s, %s, %s)"""
+                cur = con.cursor()
+                cur.execute(sql, (new_entry[0], new_entry[1], new_entry[2], new_entry[3], new_entry[4], new_entry[5], new_entry[6],
+                                  new_entry[7], new_entry[8], new_entry[9], new_entry[10], new_entry[11], new_entry[12], new_entry[13], 
+                                  new_entry[14], new_entry[15]))
+                con.commit()
+                cur.close()
                    
 
         except BaseException as e:
@@ -101,31 +107,3 @@ class StreamListener(tweepy.StreamListener):
         print >> sys.stderr, 'Timeout...'
         return True # Don't kill the stream
         print ("Stream restarted")
-############################
-# if __name__ == '__main__':
-#     obesity_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/obesity_tweets.csv"
-#     diabetes_tweets = "/Users/connorsmith/documents/consensusnetworks_projects/THDashboard/app/web/data/diabetes_tweets.csv"
-#     epilepsy_tweets = "data/telemedicine_data_extraction/epilepsy_data.csv"
-#     heart_stroke_tweets = "data/telemedicine_data_extraction/heart_stroke_tweets_data.csv"
-#     files = [obesity_tweets, diabetes_tweets]
-
-#     for f in files:
-#         file = f
-#         StreamListener = StreamListener() #Turns Stream Listener Class On
-#         StreamListener.field_load(file)
-#         print('Streamer On, Ready to Analyze Some Tweets!' + str(file))
-        
-#         try:
-#             print('Waiting For Tweets...')
-#             api = getTwitterCredentials(TWITTER_KEY, TWITTER_SECRET, TWITTER_APP_KEY, TWITTER_APP_SECRET)
-#             stream = tweepy.Stream(auth = api.auth, listener=StreamListener, aync=True)
-#             stream.filter(track = ['obesity', 'diabetes']) 
-            
-#         except Exception as ex:
-#             print ("[STREAM] Stream stopped! Reconnecting to twitter stream")
-#             print (ex)
-#             stream.filter(track = ['obesity', 'diabetes'])
-
-#         except KeyboardInterrupt:
-#             print('Program Exited Gracefully')
-#             exit(1)
